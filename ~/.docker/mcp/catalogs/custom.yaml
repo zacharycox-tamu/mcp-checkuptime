@@ -1,0 +1,30 @@
+version: 2
+name: custom
+displayName: Custom MCP Servers
+registry:
+  uptimecheck:
+    description: "Check uptime for hosts (ping) and websites (curl)"
+    title: "UptimeCheck"
+    type: server
+    dateAdded: "2025-09-15T12:32:00Z"
+    image: uptimecheck-mcp-server:latest
+    ref: ""
+    readme: ""
+    toolsUrl: ""
+    source: ""
+    upstream: ""
+    icon: ""
+    tools:
+      - name: ping_host
+      - name: check_website
+    secrets: []
+    metadata:
+      category: monitoring
+      tags:
+        - uptime
+        - ping
+        - curl
+        - monitoring
+        - network
+      license: MIT
+      owner: local
