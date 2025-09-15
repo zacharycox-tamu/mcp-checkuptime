@@ -23,7 +23,7 @@ A Model Context Protocol (MCP) server that provides network uptime checking tool
 - [Development](#development)
 - [Contributing](#contributing)
 - [License](#license)
-
+- [Acknowledgements](#acknowledgements)
 
 # Prerequisites Installation
 ## 1. Install Docker Desktop
@@ -280,3 +280,6 @@ echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | python uptimecheck_serve
 | Windows | %APPDATA%\Claude\claude_desktop_config.json | %USERPROFILE%\.docker\mcp\ |
 | macOS | ~/Library/Application Support/Claude/claude_desktop_config.json | ~/.docker/mcp/ |
 | Linux | ~/.config/Claude/claude_desktop_config.json | ~/.docker/mcp/ |
+
+# Acknowledgements
+This MCP server was based on the [work of NetworkChuck](https://github.com/theNetworkChuck/docker-mcp-tutorial)
