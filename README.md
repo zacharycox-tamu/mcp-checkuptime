@@ -254,9 +254,10 @@ chmod 644 ~/.docker/mcp/registry.yaml
 
 # Architecture
 ```mermaid
-Claude Desktop → MCP Gateway → UptimeCheck MCP Server → ping/curl commands
-                      ↓
-              Docker Desktop MCP System
+flowchart TD
+    A[Claude Desktop] -->|MCP Gateway| B[UptimeCheck MCP Server]
+    B -->|Execute| C[ping/curl commands]
+    D[Docker Desktop MCP System] -.->|Manages| B
 ```
 # Development
 ## Local Testing
