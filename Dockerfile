@@ -19,6 +19,13 @@ RUN apt-get update && apt-get install -y iputils-ping curl && rm -rf /var/lib/ap
 # Copy the server code
 COPY uptimecheck_server.py .
 
+# Set environment variables for HTTP server
+ENV MCP_HOST=0.0.0.0
+ENV MCP_PORT=9000
+
+# Expose the port
+EXPOSE 9000
+
 # Create non-root user
 RUN useradd -m -u 1000 mcpuser && chown -R mcpuser:mcpuser /app
 

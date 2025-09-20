@@ -1,5 +1,5 @@
 # UptimeCheck MCP Server - Setup Guide
-A Model Context Protocol (MCP) server that provides network uptime checking tools for Claude Desktop.
+A Model Context Protocol (MCP) server that provides network uptime checking tools for Claude Desktop and Open WebUI. The server runs as both an MCP server and a standalone web API accessible on port 9000.
 
 ## Table of Contents
 - [Prerequisites Installation](#prerequisites-installation)
@@ -15,6 +15,14 @@ A Model Context Protocol (MCP) server that provides network uptime checking tool
   - [1. Clone and Build](#1-clone-and-build)
   - [2. Configure Claude Desktop](#2-configure-claude-desktop)
   - [3. Test the Server](#3-test-the-server)
+- [Web Server Mode](#web-server-mode)
+  - [Running as Web API](#running-as-web-api)
+  - [API Endpoints](#api-endpoints)
+  - [Testing the Web API](#testing-the-web-api)
+- [Open WebUI Integration](#open-webui-integration)
+  - [Install Open WebUI](#install-open-webui)
+  - [Configure MCP Server](#configure-mcp-server)
+  - [Add to Open WebUI](#add-to-open-webui)
 - [Available Tools](#available-tools)
   - [ping_host](#ping_host)
   - [check_website](#check_website)
@@ -199,6 +207,195 @@ docker mcp catalog reset
 docker mcp catalog init
 docker mcp catalog ls
 ```
+
+# Web Server Mode
+The UptimeCheck server can also run as a standalone web API accessible on port 9000, making it compatible with Open WebUI and other applications that can consume HTTP APIs.
+
+## Running as Web API
+The server automatically runs in web mode when started, providing both MCP protocol support and HTTP API endpoints.
+
+### Start the Web Server
+```bash
+# Build the Docker image
+docker build -t mcp_uptimecheck:latest .
+
+# Run the container with port mapping
+docker run -d -p 9000:9000 --name mcp-uptimecheck mcp_uptimecheck:latest
+
+# Check if it's running
+docker ps
+docker logs mcp-uptimecheck
+```
+
+### Environment Variables
+You can customize the server configuration using environment variables:
+
+```bash
+# Custom host and port
+docker run -d -p 8080:8080 \
+  -e MCP_HOST=0.0.0.0 \
+  -e MCP_PORT=8080 \
+  --name mcp-uptimecheck \
+  mcp_uptimecheck:latest
+```
+
+## API Endpoints
+The web server provides the following HTTP endpoints:
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/` | Server status and information |
+| `GET` | `/health` | Health check with available tools |
+| `POST` | `/tools/list` | List all available MCP tools |
+| `POST` | `/tools/call` | Execute MCP tools |
+
+### API Examples
+
+**Check server status:**
+```bash
+curl http://localhost:9000/
+```
+
+**Health check:**
+```bash
+curl http://localhost:9000/health
+```
+
+**List available tools:**
+```bash
+curl -X POST http://localhost:9000/tools/list
+```
+
+**Execute ping tool:**
+```bash
+curl -X POST http://localhost:9000/tools/call \
+  -H "Content-Type: application/json" \
+  -d '{"name": "ping_host", "arguments": {"host": "google.com"}}'
+```
+
+**Execute website check tool:**
+```bash
+curl -X POST http://localhost:9000/tools/call \
+  -H "Content-Type: application/json" \
+  -d '{"name": "check_website", "arguments": {"url": "https://google.com"}}'
+```
+
+## Testing the Web API
+You can test the web API using various methods:
+
+### Using PowerShell (Windows)
+```powershell
+# Test basic endpoints
+Invoke-RestMethod -Uri "http://localhost:9000/"
+Invoke-RestMethod -Uri "http://localhost:9000/health"
+
+# Test tool execution
+$body = '{"name": "ping_host", "arguments": {"host": "google.com"}}'
+Invoke-RestMethod -Uri "http://localhost:9000/tools/call" -Method POST -Body $body -ContentType "application/json"
+```
+
+### Using curl (Linux/macOS)
+```bash
+# Test basic endpoints
+curl http://localhost:9000/
+curl http://localhost:9000/health
+
+# Test tool execution
+curl -X POST http://localhost:9000/tools/call \
+  -H "Content-Type: application/json" \
+  -d '{"name": "ping_host", "arguments": {"host": "google.com"}}'
+```
+
+# Open WebUI Integration
+Open WebUI is an extensible, feature-rich, and user-friendly self-hosted WebUI designed to operate entirely offline. You can integrate the UptimeCheck MCP server with Open WebUI to provide uptime monitoring capabilities.
+
+## Install Open WebUI
+### Using Docker Compose (Recommended)
+Create a `docker-compose.yml` file:
+
+```yaml
+version: '3.8'
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    ports:
+      - "3000:8080"
+    volumes:
+      - open-webui:/app/backend/data
+    environment:
+      - OPENAI_API_BASE_URL=http://localhost:9000
+    depends_on:
+      - uptimecheck-server
+
+  uptimecheck-server:
+    image: mcp_uptimecheck:latest
+    container_name: uptimecheck-server
+    ports:
+      - "9000:9000"
+    environment:
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=9000
+
+volumes:
+  open-webui:
+```
+
+Start the services:
+```bash
+docker-compose up -d
+```
+
+### Using Docker Run
+```bash
+# Start the UptimeCheck server
+docker run -d -p 9000:9000 --name uptimecheck-server mcp_uptimecheck:latest
+
+# Start Open WebUI
+docker run -d -p 3000:8080 \
+  -v open-webui:/app/backend/data \
+  --name open-webui \
+  ghcr.io/open-webui/open-webui:main
+```
+
+## Configure MCP Server
+The UptimeCheck server is already configured to work with Open WebUI through its HTTP API endpoints. No additional configuration is needed for the server itself.
+
+## Add to Open WebUI
+1. **Access Open WebUI**: Open your browser and navigate to `http://localhost:3000`
+2. **Create an account** or sign in
+3. **Add the MCP server**:
+   - Go to Settings → Connected Services
+   - Add a new MCP server with the following configuration:
+     - **Name**: UptimeCheck
+     - **URL**: `http://uptimecheck-server:9000` (if using docker-compose) or `http://localhost:9000`
+     - **API Key**: (leave empty if no authentication is required)
+
+### Alternative: Use as External Tool
+If MCP integration isn't available, you can use the server as an external tool:
+
+1. **Create a custom tool** in Open WebUI
+2. **Configure the tool** to make HTTP requests to your UptimeCheck server
+3. **Use the API endpoints** to execute ping and website checks
+
+### Example Tool Configuration
+```json
+{
+  "name": "ping_host",
+  "description": "Ping a host to check network uptime",
+  "url": "http://localhost:9000/tools/call",
+  "method": "POST",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "name": "ping_host",
+    "arguments": {
+      "host": "{{host}}"
+    }
+  }
+}
+```
 ## 3. Usage Examples
 Once set up, you can use these tools in Claude Desktop conversations:
 
@@ -252,12 +449,81 @@ chmod 644 ~/.docker/mcp/catalogs/custom.yaml
 chmod 644 ~/.docker/mcp/registry.yaml
 ```
 
+## Web server not accessible
+1. **Check if container is running:**
+   ```bash
+   docker ps | grep mcp-uptimecheck
+   ```
+
+2. **Check container logs:**
+   ```bash
+   docker logs mcp-uptimecheck
+   ```
+
+3. **Verify port mapping:**
+   ```bash
+   # Should show 0.0.0.0:9000->9000/tcp
+   docker port mcp-uptimecheck
+   ```
+
+4. **Test local connectivity:**
+   ```bash
+   # Test from inside the container
+   docker exec mcp-uptimecheck curl http://localhost:9000/health
+   
+   # Test from host
+   curl http://localhost:9000/health
+   ```
+
+5. **Check firewall settings** (if applicable):
+   - Ensure port 9000 is not blocked
+   - Check Windows Firewall or iptables rules
+
+## Open WebUI integration issues
+1. **Verify server is accessible** from Open WebUI container:
+   ```bash
+   # If using docker-compose
+   docker exec open-webui curl http://uptimecheck-server:9000/health
+   
+   # If using separate containers
+   docker exec open-webui curl http://host.docker.internal:9000/health
+   ```
+
+2. **Check network connectivity:**
+   ```bash
+   # Ensure containers can communicate
+   docker network ls
+   docker network inspect bridge
+   ```
+
+3. **Verify Open WebUI configuration:**
+   - Check the MCP server URL is correct
+   - Ensure the server is running before starting Open WebUI
+   - Check Open WebUI logs for connection errors
+
 # Architecture
 ```mermaid
 flowchart TD
     A[Claude Desktop] -->|MCP Gateway| B[UptimeCheck MCP Server]
+    E[Open WebUI] -->|HTTP API| B
+    F[External Apps] -->|HTTP API| B
     B -->|Execute| C[ping/curl commands]
     D[Docker Desktop MCP System] -.->|Manages| B
+    B -->|Port 9000| G[Web API Endpoints]
+    
+    subgraph "UptimeCheck Server"
+        B
+        G
+        H[/tools/list]
+        I[/tools/call]
+        J[/health]
+        K[/]
+    end
+    
+    G --> H
+    G --> I
+    G --> J
+    G --> K
 ```
 # Development
 ## Local Testing
@@ -280,6 +546,44 @@ echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | python uptimecheck_serve
 | Windows | %APPDATA%\Claude\claude_desktop_config.json | %USERPROFILE%\.docker\mcp\ |
 | macOS | ~/Library/Application Support/Claude/claude_desktop_config.json | ~/.docker/mcp/ |
 | Linux | ~/.config/Claude/claude_desktop_config.json | ~/.docker/mcp/ |
+
+## Quick Reference
+
+### Web Server Commands
+```bash
+# Build and run
+docker build -t mcp_uptimecheck:latest .
+docker run -d -p 9000:9000 --name mcp-uptimecheck mcp_uptimecheck:latest
+
+# Check status
+curl http://localhost:9000/health
+
+# Test tools
+curl -X POST http://localhost:9000/tools/call \
+  -H "Content-Type: application/json" \
+  -d '{"name": "ping_host", "arguments": {"host": "google.com"}}'
+
+# Stop and cleanup
+docker stop mcp-uptimecheck && docker rm mcp-uptimecheck
+```
+
+### Docker Compose for Open WebUI
+```yaml
+version: '3.8'
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    ports: ["3000:8080"]
+    volumes: [open-webui:/app/backend/data]
+    depends_on: [uptimecheck-server]
+
+  uptimecheck-server:
+    image: mcp_uptimecheck:latest
+    ports: ["9000:9000"]
+
+volumes:
+  open-webui:
+```
 
 # Acknowledgements
 This MCP server was based on the [work of NetworkChuck](https://github.com/theNetworkChuck/docker-mcp-tutorial)
