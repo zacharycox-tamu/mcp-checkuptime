@@ -135,6 +135,40 @@ if __name__ == "__main__":
                 "available_tools": ["ping_host", "check_website"]
             }
         
+        @app.get("/ping")
+        async def ping_get(host: str = "google.com"):
+            """Simple ping endpoint with GET method"""
+            logger.info(f"Ping GET endpoint called with host: {host}")
+            return await handle_call_tool("ping_host", {"host": host})
+        
+        @app.post("/ping")
+        async def ping_endpoint(request: dict = None):
+            """Simple ping endpoint for easier integration"""
+            # Handle case where no request body is sent
+            if request is None:
+                request = {}
+            
+            host = request.get("host", "google.com")
+            logger.info(f"Ping endpoint called with host: {host} (request: {request})")
+            return await handle_call_tool("ping_host", {"host": host})
+        
+        @app.get("/check-website")
+        async def check_website_get(url: str = "https://google.com"):
+            """Simple website check endpoint with GET method"""
+            logger.info(f"Check website GET endpoint called with URL: {url}")
+            return await handle_call_tool("check_website", {"url": url})
+        
+        @app.post("/check-website")
+        async def check_website_endpoint(request: dict = None):
+            """Simple website check endpoint for easier integration"""
+            # Handle case where no request body is sent
+            if request is None:
+                request = {}
+                
+            url = request.get("url", "https://google.com")
+            logger.info(f"Check website endpoint called with URL: {url} (request: {request})")
+            return await handle_call_tool("check_website", {"url": url})
+        
         @app.post("/tools/list")
         async def list_tools():
             return await handle_list_tools()

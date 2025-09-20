@@ -246,8 +246,13 @@ The web server provides the following HTTP endpoints:
 |--------|----------|-------------|
 | `GET` | `/` | Server status and information |
 | `GET` | `/health` | Health check with available tools |
+| `GET` | `/ping` | Simple ping endpoint (no body required) |
+| `GET` | `/check-website` | Simple website check endpoint (no body required) |
 | `POST` | `/tools/list` | List all available MCP tools |
-| `POST` | `/tools/call` | Execute MCP tools |
+| `POST` | `/tools/call` | Execute MCP tools (flexible format) |
+| `POST` | `/ping` | Simple ping endpoint (works without body) |
+| `POST` | `/check-website` | Simple website check endpoint (works without body) |
+| `POST` | `/debug` | Debug endpoint to inspect requests |
 
 ### API Examples
 
@@ -278,6 +283,41 @@ curl -X POST http://localhost:9000/tools/call \
 curl -X POST http://localhost:9000/tools/call \
   -H "Content-Type: application/json" \
   -d '{"name": "check_website", "arguments": {"url": "https://google.com"}}'
+```
+
+**Simple ping endpoint (GET - no body required):**
+```bash
+curl http://localhost:9000/ping
+curl "http://localhost:9000/ping?host=google.com"
+```
+
+**Simple ping endpoint (POST - works without body):**
+```bash
+curl -X POST http://localhost:9000/ping
+curl -X POST http://localhost:9000/ping \
+  -H "Content-Type: application/json" \
+  -d '{"host": "google.com"}'
+```
+
+**Simple website check endpoint (GET - no body required):**
+```bash
+curl http://localhost:9000/check-website
+curl "http://localhost:9000/check-website?url=https://google.com"
+```
+
+**Simple website check endpoint (POST - works without body):**
+```bash
+curl -X POST http://localhost:9000/check-website
+curl -X POST http://localhost:9000/check-website \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://google.com"}'
+```
+
+**Debug endpoint (to see what Open WebUI sends):**
+```bash
+curl -X POST http://localhost:9000/debug \
+  -H "Content-Type: application/json" \
+  -d '{"test": "data"}'
 ```
 
 ## Testing the Web API
@@ -500,6 +540,81 @@ chmod 644 ~/.docker/mcp/registry.yaml
    - Check the MCP server URL is correct
    - Ensure the server is running before starting Open WebUI
    - Check Open WebUI logs for connection errors
+
+## Open WebUI "Request body expected" Error
+If you get the error "Request body expected for operation 'call_tool_tools_call_post' but none found":
+
+### Solution 1: Use GET Endpoints (Recommended)
+The easiest solution is to use GET endpoints that don't require a request body:
+
+**For ping:**
+- Use endpoint: `http://localhost:9000/ping` (GET)
+- Optional: Add query parameter: `http://localhost:9000/ping?host=google.com`
+
+**For website check:**
+- Use endpoint: `http://localhost:9000/check-website` (GET)
+- Optional: Add query parameter: `http://localhost:9000/check-website?url=https://google.com`
+
+### Solution 2: Use POST Endpoints (No Body Required)
+The POST endpoints now work even without a request body:
+
+**For ping:**
+- Use endpoint: `http://localhost:9000/ping` (POST)
+- No body required - defaults to google.com
+- Optional: Send `{"host": "google.com"}`
+
+**For website check:**
+- Use endpoint: `http://localhost:9000/check-website` (POST)
+- No body required - defaults to https://google.com
+- Optional: Send `{"url": "https://google.com"}`
+
+### Solution 3: Debug the Request Format
+1. **Check what Open WebUI is sending:**
+   ```bash
+   curl -X POST http://localhost:9000/debug \
+     -H "Content-Type: application/json" \
+     -d '{"test": "from_openwebui"}'
+   ```
+
+2. **Check server logs:**
+   ```bash
+   docker logs mcp-uptimecheck
+   ```
+
+### Solution 4: Configure Open WebUI Tool Correctly
+When setting up the tool in Open WebUI, use this configuration:
+
+**For Ping Tool:**
+```json
+{
+  "name": "ping_host",
+  "description": "Ping a host to check network uptime",
+  "url": "http://localhost:9000/ping",
+  "method": "POST",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "host": "{{host}}"
+  }
+}
+```
+
+**For Website Check Tool:**
+```json
+{
+  "name": "check_website", 
+  "description": "Check if a website is up",
+  "url": "http://localhost:9000/check-website",
+  "method": "POST",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "url": "{{url}}"
+  }
+}
+```
 
 # Architecture
 ```mermaid
