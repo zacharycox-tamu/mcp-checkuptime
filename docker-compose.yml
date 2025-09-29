@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  uptimecheck-server:
+    build: .
+    container_name: uptimecheck-mcp-server
+    # Use host network mode to access the host's network interfaces
+    network_mode: "host"
+    restart: unless-stopped
+    environment:
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=9000
+    volumes:
+      # Optional: Mount logs directory
+      - ./logs:/app/logs
