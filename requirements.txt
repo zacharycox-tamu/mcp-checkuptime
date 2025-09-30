@@ -1,4 +1,15 @@
+# MCP Server Dependencies
+# FastMCP requires mcp[cli] >= 1.2.0 (official recommendation)
 mcp[cli]>=1.15.0
+
+# HTTP client for making requests (used in legacy server)
 httpx
+
+# Web framework for HTTP-based MCP server (legacy server)
 fastapi
 uvicorn
+
+# SSE transport support (for FastMCP with SSE)
+# Already included in mcp[cli], but listed for clarity
+starlette
+sse-starlette

@@ -1,0 +1,55 @@
+---
+# Traefik Middleware for MCP Server
+# Disables buffering for SSE/Streaming connections
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: mcp-no-buffer
+  namespace: mcp  # Change to your namespace
+spec:
+  buffering:
+    maxRequestBodyBytes: 0
+    maxResponseBodyBytes: 0
+    memRequestBodyBytes: 0
+    memResponseBodyBytes: 0
+    retryExpression: ""
+
+---
+# Middleware to add required headers
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: mcp-headers
+  namespace: mcp  # Change to your namespace
+spec:
+  headers:
+    customResponseHeaders:
+      X-Accel-Buffering: "no"
+      Cache-Control: "no-cache"
+      Connection: "keep-alive"
+    customRequestHeaders:
+      Connection: "keep-alive"
+
+---
+# Middleware for CORS
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: mcp-cors
+  namespace: mcp  # Change to your namespace
+spec:
+  headers:
+    accessControlAllowMethods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    accessControlAllowHeaders:
+      - "*"
+    accessControlAllowOriginList:
+      - "*"
+    accessControlMaxAge: 100
+    addVaryHeader: true
+    accessControlExposeHeaders:
+      - "*"

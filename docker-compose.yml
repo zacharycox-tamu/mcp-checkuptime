@@ -4,12 +4,18 @@ services:
   uptimecheck-server:
     build: .
     container_name: uptimecheck-mcp-server
-    # Use host network mode to access the host's network interfaces
-    network_mode: "host"
     restart: unless-stopped
+    ports:
+      - "9000:9000"
     environment:
       - MCP_HOST=0.0.0.0
       - MCP_PORT=9000
+      - MCP_TRANSPORT=sse
+      - LOG_LEVEL=DEBUG
+      - PYTHONUNBUFFERED=1
+      # Optional: Set BEARER_TOKEN to enable authentication
+      # If not set or empty, authentication is DISABLED
+      # - BEARER_TOKEN=your-secret-token-here
     volumes:
       # Optional: Mount logs directory
       - ./logs:/app/logs

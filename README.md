@@ -1,5 +1,41 @@
-# UptimeCheck MCP Server - Setup Guide
-A Model Context Protocol (MCP) server that provides network uptime checking tools for Claude Desktop and Open WebUI. The server runs as both an MCP server and a standalone web API accessible on port 9000.
+# UptimeCheck MCP Server
+
+A Model Context Protocol (MCP) server that provides network uptime checking tools. Fully compatible with:
+- ✅ **N8N** (MCP Client Tool v1.2+)
+- ✅ **Open WebUI** (direct API integration)
+- ✅ **Claude Desktop** (stdio transport)
+- ✅ Any MCP-compliant client
+
+The server supports multiple MCP protocol versions and runs as both an MCP server and a standalone web API.
+
+## 🚀 Quick Start
+
+### N8N Integration
+```
+MCP Client Tool Settings:
+  Endpoint: http://mcp-checkuptime.mcp.svc.cluster.local:8080  # Internal K8s
+  # OR: https://your-domain.com  # External
+  Server Transport: HTTP Streamable
+  Authentication: None
+  Tools to Include: All
+```
+
+See [N8N Setup Guide](./ai-docs/K8S_N8N_SETUP.md) for complete instructions.
+
+### Docker Deployment
+```bash
+docker-compose up -d
+```
+
+## 📚 Documentation
+
+Comprehensive documentation is available in the [`ai-docs/`](./ai-docs/) folder:
+
+- **[N8N Setup Guide](./ai-docs/K8S_N8N_SETUP.md)** - Complete N8N + Kubernetes setup
+- **[Authentication Guide](./ai-docs/BEARER_TOKEN_AUTH.md)** - Bearer token configuration
+- **[Kubernetes Guide](./ai-docs/K8S_N8N_SETUP.md)** - Traefik + ingress setup
+- **[Troubleshooting](./ai-docs/N8N_TROUBLESHOOTING_CONNECTION.md)** - Connection issues
+- **[Full Documentation Index](./ai-docs/README.md)** - All documentation
 
 ## Table of Contents
 - [Prerequisites Installation](#prerequisites-installation)

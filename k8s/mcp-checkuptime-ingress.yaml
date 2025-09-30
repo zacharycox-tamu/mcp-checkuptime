@@ -1,0 +1,55 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mcp-checkuptime
+  namespace: mcp
+  labels:
+    app.kubernetes.io/instance: mcp-uptimecheck
+    app.kubernetes.io/name: mcp-uptimecheck
+    app.kubernetes.io/version: 1.0.0
+  annotations:
+    # Certificate and DNS
+    cert-manager.io/acme-challenge-type: dns01
+    cert-manager.io/cluster-issuer: letsencrypt-cloudflare
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: 'false'
+    external-dns.alpha.kubernetes.io/hostname: mcp-checkuptime.domain.tld
+    external-dns.alpha.kubernetes.io/record-type: CNAME
+    external-dns.alpha.kubernetes.io/target: domain.tld
+    external-dns.alpha.kubernetes.io/ttl: '60'
+    
+    # Homepage dashboard
+    gethomepage.dev/description: MCP Server - Ping and Curl
+    gethomepage.dev/enabled: 'true'
+    gethomepage.dev/group: AI Backend
+    gethomepage.dev/href: https://mcp-checkuptime.domain.tld
+    gethomepage.dev/icon: https://avatars.githubusercontent.com/u/182288589?s=200&v=4
+    gethomepage.dev/name: MCP - CheckUptime
+    
+    # Traefik basic settings
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+    
+    # ===== CRITICAL FOR MCP/SSE =====
+    # Apply the no-buffer, headers, and CORS middlewares
+    traefik.ingress.kubernetes.io/router.middlewares: mcp-mcp-no-buffer@kubernetescrd,mcp-mcp-headers@kubernetescrd,mcp-mcp-cors@kubernetescrd
+    
+    # Additional buffering controls
+    ingress.kubernetes.io/buffering: "false"
+    
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - mcp-checkuptime.domain.tld
+      secretName: uptimecheck-tls
+  rules:
+    - host: mcp-checkuptime.domain.tld
+      http:
+        paths:
+          - path: /
+            pathType: Prefix  # Changed from ImplementationSpecific to Prefix for clarity
+            backend:
+              service:
+                name: mcp-checkuptime
+                port:
+                  number: 8080
