@@ -17,15 +17,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN apt-get update && apt-get install -y iputils-ping curl && rm -rf /var/lib/apt/lists/*
 
 # Copy the server code
-COPY uptimecheck_fastmcp.py .
-COPY uptimecheck_server.py .
 COPY uptimecheck_modular.py .
 COPY src/ ./src/
 
 # Set environment variables for HTTP server
 ENV MCP_HOST=0.0.0.0
 ENV MCP_PORT=9000
-ENV MCP_TRANSPORT=sse
+ENV MCP_TRANSPORT=streamable_http
 
 # Authentication (optional - if not set, auth is disabled)
 # Set this via docker-compose.yml or docker run -e BEARER_TOKEN=your-secret-token

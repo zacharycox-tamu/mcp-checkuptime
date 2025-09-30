@@ -10,7 +10,7 @@ services:
     environment:
       - MCP_HOST=0.0.0.0
       - MCP_PORT=9000
-      - MCP_TRANSPORT=sse
+      - MCP_TRANSPORT=streamable_http
       - LOG_LEVEL=DEBUG
       - PYTHONUNBUFFERED=1
       # Optional: Set BEARER_TOKEN to enable authentication

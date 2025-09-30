@@ -1,0 +1,15 @@
+---
+# Middleware to add required headers
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: mcp-headers
+  namespace: mcp  # Change to your namespace
+spec:
+  headers:
+    customResponseHeaders:
+      X-Accel-Buffering: "no"
+      Cache-Control: "no-cache"
+      Connection: "keep-alive"
+    customRequestHeaders:
+      Connection: "keep-alive"

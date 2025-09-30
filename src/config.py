@@ -19,7 +19,7 @@ logger.setLevel(getattr(logging, log_level))
 # Server configuration
 MCP_HOST = os.getenv('MCP_HOST', '0.0.0.0')
 MCP_PORT = int(os.getenv('MCP_PORT', '9000'))
-MCP_TRANSPORT = os.getenv('MCP_TRANSPORT', 'sse')
+MCP_TRANSPORT = os.getenv('MCP_TRANSPORT', 'streamable_http')
 
 # Authentication configuration
 BEARER_TOKEN = os.getenv('BEARER_TOKEN', '').strip()
